@@ -1,37 +1,29 @@
-import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera"
-import { Engine } from "@babylonjs/core/Engines/engine"
-import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight"
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder"
-import { Scene } from "@babylonjs/core/scene"
-import { Vector3 } from "@babylonjs/core/Maths/math.vector"
+import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
+import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Scene } from "@babylonjs/core/scene";
+import { Engine } from "@babylonjs/core/Engines/engine";
 
-import { SampleMaterial } from "./Materials/SampleMaterial"
+import { SampleMaterial } from "./Materials/SampleMaterial";
 
-const view = document.getElementById("view") as HTMLCanvasElement
-const engine = new Engine(view, true)
+const canvas: HTMLCanvasElement = document.getElementById("view") as HTMLCanvasElement;
 
-const scene = new Scene(engine)
+const engine: Engine = new Engine(canvas);
 
-const camera = new ArcRotateCamera(
-    "camera",
-    Math.PI / 2,
-    Math.PI / 3.2,
-    2,
-    Vector3.Zero(),
-    scene)
+const scene: any = new Scene(engine);
 
-camera.attachControl(view)
+const camera = new ArcRotateCamera("camera", Math.PI / 2, Math.PI / 3.2, 2, Vector3.Zero(), scene);
 
-const light = new HemisphericLight(
-    "light",
-    new Vector3(0, 1, 0),
-    scene)
+camera.attachControl(canvas);
 
-const mesh = MeshBuilder.CreateGround("mesh", {}, scene)
+const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
 
-const material =  new SampleMaterial("material", scene)
-mesh.material = material
+const mesh = MeshBuilder.CreateGround("mesh", {}, scene);
+
+const material = new SampleMaterial("material", scene);
+mesh.material = material;
 
 engine.runRenderLoop(() => {
-    scene.render();
-})
+  scene.render(true, true);
+});
