@@ -2,8 +2,8 @@ import { Scene } from "@babylonjs/core/scene";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { Effect } from "@babylonjs/core/Materials/effect";
 
-import * as sampleVertexShader from "./Shaders/Sample/sample.vertex.glsl";
-import * as sampleFragmentShader from "./Shaders/Sample/sample.fragment.glsl";
+import sampleVertexShader from "./Shaders/Sample/sample.vertex.glsl";
+import sampleFragmentShader from "./Shaders/Sample/sample.fragment.glsl";
 
 Effect.ShadersStore["sampleVertexShader"] = sampleVertexShader;
 Effect.ShadersStore["sampleFragmentShader"] = sampleFragmentShader;

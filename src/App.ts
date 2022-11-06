@@ -3,6 +3,7 @@ import "@babylonjs/inspector";
 
 import { KeyboardEvents } from "./Input/KeyboardEvents";
 import { LightBuilder } from "./Lighting/LightBuilder";
+import { SampleMaterial } from "./Materials/SampleMaterial";
 import { Canvas } from "./Window/Canvas";
 import { EngineBuilder } from "./Window/EngineBuilder";
 import { TargetCameraHandler } from "./Window/TargetCameraHandler";
@@ -31,6 +32,10 @@ class App {
     const light: Light = this._lightBuilder.buildHemisphericLight("MainLight", new Vector3(1, 20, 10));
 
     const mesh: Mesh = MeshBuilder.CreateBox("MyBox", { size: 5 }, this._scene);
+
+    const material = new SampleMaterial("material", this._scene);
+    const ground = MeshBuilder.CreateGround("ground", {}, this._scene);
+    ground.material = material;
 
     this._camera = new TargetCameraHandler(this._scene).buildArcCamera("cam", Math.PI / 2, Math.PI / 3, 10, new Vector3(0, 5, 10)).attachControls(this._canvas);
 
