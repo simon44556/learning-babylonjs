@@ -1,15 +1,19 @@
-const path = require("path")
-const CopyPlugin = require("copy-webpack-plugin")
-const HtmlWebpackPlugin = require("html-webpack-plugin")
+const path = require("path");
+const fs = require("fs");
+const CopyPlugin = require("copy-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+const appDirectory = fs.realpathSync(process.cwd());
 
 module.exports = {
-  entry: "./src/index.ts",
+  entry: path.resolve(appDirectory, "src/App.ts"),
   output: {
-    path: path.resolve(__dirname, "./dist"),
+    path: path.resolve(appDirectory, "./dist"),
     filename: '[name].[contenthash].js',
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".glsl"],
+    extensions: [".ts", ".tsx", ".js"],
     fallback: {
       fs: false,
       path: false, // require.resolve("path-browserify")
@@ -25,21 +29,25 @@ module.exports = {
           loader: "source-map-loader",
           enforce: "pre",
       },
-      { test: /\.tsx?$/, loader: "ts-loader" },
       {
-        test: /\.(glsl|vs|fs)$/,
-        loader: "ts-shader-loader",
-        exclude: /node_modules/,
+          test: /\.tsx?$/,
+          loader: "ts-loader",
+          // sideEffects: true
+      },
+      {
+          test: /\.(glsl|vs|fs)$/,
+          loader: "ts-shader-loader",
+          exclude: /node_modules/,
       },
       {
         test: /\.(png|jpg|gif|env|glb|gltf|stl)$/i,
         use: [
-            {
-                loader: "url-loader",
-                options: {
-                    limit: 8192,
-                },
-            },
+          {
+              loader: "url-loader",
+              options: {
+                  limit: 8192,
+              },
+          },
         ],
       },
     ],
@@ -50,7 +58,10 @@ module.exports = {
             { from: "public" },
         ],
     }),
+    
+    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
+      inject: true,
       template: "!!handlebars-loader!src/index.hbs",
     }),
   ],

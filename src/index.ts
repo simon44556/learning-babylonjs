@@ -11,7 +11,7 @@ const canvas: HTMLCanvasElement = document.getElementById("view") as HTMLCanvasE
 
 const engine: Engine = new Engine(canvas);
 
-const scene: any = new Scene(engine);
+const scene: Scene = new Scene(engine);
 
 const camera = new ArcRotateCamera("camera", Math.PI / 2, Math.PI / 3.2, 2, Vector3.Zero(), scene);
 
@@ -25,5 +25,5 @@ const material = new SampleMaterial("material", scene);
 mesh.material = material;
 
 engine.runRenderLoop(() => {
-  scene.render(true, true);
+  scene.render();
 });

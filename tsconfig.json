@@ -10,11 +10,9 @@
         "strictNullChecks": true,
         "strictFunctionTypes": true,
         "skipLibCheck": true,
-		"preserveConstEnums":true,
+		"preserveConstEnums": true,
         "sourceMap": true,
+        "strictPropertyInitialization": false,
         "rootDir": "src"
-	},
-    "include": [
-        "src/**/*",
-    ]
+	}
 }

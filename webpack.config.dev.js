@@ -1,13 +1,16 @@
-const path = require("path")
-const { merge } = require("webpack-merge")
+const path = require("path");
+const { merge } = require("webpack-merge");
+const fs = require('fs');
 
-const common = require("./webpack.config.common")
+const common = require("./webpack.config.common");
+
+const appDirectory = fs.realpathSync(process.cwd());
 
 module.exports = merge(common, {
     mode: "development",
     devtool: "inline-source-map",
     devServer: {
-        static: path.resolve(__dirname, "./dist"),
+        static: path.resolve(appDirectory, "./dist"),
         compress: true,
         hot: true,
         // publicPath: '/',
