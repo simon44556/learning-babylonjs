@@ -12,7 +12,7 @@ class App {
   private _canvas: Canvas;
   private _engine: Engine;
   private _scene: Scene;
-  private _camera: TargetCamera;
+  private _camera: TargetCameraHandler;
 
   private _keyboardEvents: KeyboardEvents;
 
@@ -32,8 +32,7 @@ class App {
 
     const mesh: Mesh = MeshBuilder.CreateBox("MyBox", { size: 5 }, this._scene);
 
-    this._camera = new TargetCameraHandler(this._scene).buildArcCamera("cam", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero());
-    this._camera.attachControl(this._canvas.getCanvas());
+    this._camera = new TargetCameraHandler(this._scene).buildArcCamera("cam", Math.PI / 2, Math.PI / 3, 10, new Vector3(0, 5, 10)).attachControls(this._canvas);
 
     this._keyboardEvents = new KeyboardEvents(this._scene);
 

@@ -16,7 +16,7 @@ export class TargetCameraHandler {
       throw new Error("Error creating a camera");
     }
 
-    return this._camera;
+    return this;
   }
 
   buildFlyCamera(name: string, position: Vector3) {
@@ -26,7 +26,7 @@ export class TargetCameraHandler {
       throw new Error("Error creating a camera");
     }
 
-    return this._camera;
+    return this;
   }
 
   buildFreeCamera(name: string, position: Vector3) {
@@ -36,7 +36,7 @@ export class TargetCameraHandler {
       throw new Error("Error creating a camera");
     }
 
-    return this._camera;
+    return this;
   }
 
   attachControls(canvas: Canvas) {
@@ -45,5 +45,15 @@ export class TargetCameraHandler {
     }
 
     this._camera.attachControl(canvas.getCanvas());
+
+    return this;
+  }
+
+  getCamera() {
+    if (!this._camera) {
+      throw new Error("Error creating a camera");
+    }
+
+    return this._camera;
   }
 }
