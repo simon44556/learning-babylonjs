@@ -33,9 +33,10 @@ class App {
 
     const mesh: Mesh = MeshBuilder.CreateBox("MyBox", { size: 5 }, this._scene);
 
-    const material = new SampleMaterial("material", this._scene);
-    const ground = MeshBuilder.CreateGround("ground", {}, this._scene);
+    const material = new SampleMaterial("groundMat", this._scene);
+    const ground = MeshBuilder.CreateGround("ground", { width: 20, height: 20 }, this._scene);
     ground.material = material;
+    ground.position.y = -4;
 
     this._camera = new TargetCameraHandler(this._scene).buildArcCamera("cam", Math.PI / 2, Math.PI / 3, 10, new Vector3(0, 5, 10)).attachControls(this._canvas);
 
