@@ -1,3 +1,5 @@
+import { Block } from "./Block/Block";
+import { BlockType } from "./Block/BlockType";
 import { MeshData } from "./MeshData";
 import { Mesher } from "./Mesher";
 
@@ -9,16 +11,15 @@ export class GreedyMesher implements Mesher {
     this.mask = new Int32Array(0);
   }
 
-  getItemInArrayForOffset(x: number, y: number, z: number, /*pass by ref*/ volume: number[], dimensions: number[]) {
-    if (x == 0 && y == 0 && z == 0) {
-      console.log("zero ", volume[x + dimensions[0] * (y + dimensions[1] * z)]);
-    }
-    return volume[x + dimensions[0] * (y + dimensions[1] * z)];
+  getItemInArrayForOffset(x: number, y: number, z: number, volume: Block[], dimensions: number[]) {
+    const block = volume[x + dimensions[0] * (y + dimensions[1] * z)];
+    return block.blockType != BlockType.AIR ? block : 0;
   }
 
-  mesh(volume: number[], dims: number[]): MeshData {
+  mesh(volume: Block[], dims: number[]): MeshData {
     const vertices: any[] = [];
     const faces: [number[]] = [[]];
+    const indices: number[] = [];
 
     for (let dimensionLoop = 0; dimensionLoop < 3; ++dimensionLoop) {
       // TODO: Figure out this part
@@ -58,10 +59,7 @@ export class GreedyMesher implements Mesher {
             // The mask is set to true if there is a visible face between two blocks,
             //   i.e. both aren't empty and both aren't blocks
 
-            if (x[0] == 0 && x[1] == 0 && x[2] == 0) {
-              //debugger;
-            }
-
+            // TODO: Add block comparing of type. Mesh together same types
             if (!!blockCurrent === !!blockCompare) {
               this.mask[n] = 0;
             } else if (!!blockCurrent) {
@@ -135,6 +133,9 @@ export class GreedyMesher implements Mesher {
               faces.push([vertex_count, vertex_count + 1, vertex_count + 2, c]);
               faces.push([vertex_count, vertex_count + 2, vertex_count + 3, c]);
 
+              indices.push(vertex_count + 2, vertex_count + 1, vertex_count);
+              indices.push(vertex_count + 3, vertex_count + 2, vertex_count);
+
               //Zero-out mask
               for (l = 0; l < h; ++l)
                 for (k = 0; k < w; ++k) {
@@ -153,6 +154,6 @@ export class GreedyMesher implements Mesher {
     }
 
     //END
-    return { vertices: vertices, faces: faces };
+    return { vertices: vertices, faces: faces, indices: indices };
   }
 }

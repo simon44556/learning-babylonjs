@@ -4,6 +4,7 @@ import "@babylonjs/inspector";
 import { KeyboardEvents } from "./Input/KeyboardEvents";
 import { LightBuilder } from "./Lighting/LightBuilder";
 import { SampleMaterial } from "./Materials/SampleMaterial";
+import { ChunkHandler } from "./Voxels/ChunkHandler/ChunkHandler";
 import { GreedyMesher } from "./Voxels/GreedyTry";
 import { MeshData } from "./Voxels/MeshData";
 import { Voxel } from "./Voxels/Voxel";
@@ -22,6 +23,8 @@ class App {
 
   private _lightBuilder: LightBuilder;
 
+  private _chunkHandler: ChunkHandler;
+
   constructor() {
     this._canvas = new Canvas(this._canvasElement);
     this._engine = new EngineBuilder().setCanvas(this._canvas).setAntiAlias(true).build();
@@ -31,12 +34,14 @@ class App {
     this._scene.debugLayer.show();
 
     this._lightBuilder = new LightBuilder(this._scene);
-    this._camera = new TargetCameraHandler(this._scene).buildArcCamera("cam", Math.PI / 2, Math.PI / 3, 10, new Vector3(0, 5, 10)).attachControls(this._canvas);
+    this._camera = new TargetCameraHandler(this._scene).buildFreeCamera("cam", new Vector3(10, 5, -30)).attachControls(this._canvas);
     this._keyboardEvents = new KeyboardEvents(this._scene);
+
+    this._chunkHandler = new ChunkHandler(this._scene, this._camera.getCamera());
 
     //TODO: Move this out of main
     this.addLight();
-    this.addBox();
+    //this.addBox();
     //this.addGround();
 
     this.renderLoop();
@@ -53,60 +58,59 @@ class App {
 
   addBox() {
     const mesh: Mesh = MeshBuilder.CreateBox("MyBox", { size: 1 }, this._scene);
-    mesh.material = new SampleMaterial("otherMat", this._scene);
+    //mesh.material = new SampleMaterial("otherMat", this._scene);
     mesh.isVisible = true;
 
     const meshArray: Mesh[] = [];
 
-    const _x = 2,
-      _y = 2,
-      _z = 2;
+    const _x = 16,
+      _y = 16,
+      _z = 16;
     const voxel: Voxel = { voxels: [], dimensions: [_x, _y, _z] };
-    //voxel.voxels.pop();
 
-    for (let x = -1; x < _x; x++) {
-      for (let y = -1; y < _y; y++) {
-        for (let z = -1; z < _z; z++) {
+    for (let x = 0; x < _x; x++) {
+      for (let y = 0; y < _y; y++) {
+        for (let z = 0; z < _z; z++) {
           voxel.voxels.push(this.positionToIndex([x, y, z], voxel.dimensions));
         }
       }
     }
 
     const mesher: GreedyMesher = new GreedyMesher();
-    const data: MeshData = mesher.mesh(voxel.voxels, voxel.dimensions);
+    //const data: MeshData = mesher.mesh(voxel.voxels, voxel.dimensions);
 
     const indices = [];
     const colors = [];
 
-    for (let i = 0; i < data.faces.length; ++i) {
-      const q = data.faces[i];
-      indices.push(q[2], q[1], q[0]);
+    // for (let i = 0; i < data.faces.length; ++i) {
+    //   const q = data.faces[i];
+    //   indices.push(q[2], q[1], q[0]);
 
-      //Get the color for this voxel
-      // var color = this.coloringFunction(q[3], q[4]);
-      // if(color == null || color.length < 3) {
-      // 	color = [300,75,300,255];
-      // } else if (color.length === 3) {
-      // 	color.push(255);
-      // }
+    //   //Get the color for this voxel
+    //   // var color = this.coloringFunction(q[3], q[4]);
+    //   // if(color == null || color.length < 3) {
+    //   // 	color = [300,75,300,255];
+    //   // } else if (color.length === 3) {
+    //   // 	color.push(255);
+    //   // }
 
-      // for(var i2 = 0; i2 < 3; i2++) {
-      // 	colors[q[i2]*4] = color[0]/255;
-      // 	colors[(q[i2]*4)+1] = color[1]/255;
-      // 	colors[(q[i2]*4)+2] = color[2]/255;
-      // 	colors[(q[i2]*4)+3] = color[3]/255;
-      // 	continue;
-      // }
-    }
+    //   // for(var i2 = 0; i2 < 3; i2++) {
+    //   // 	colors[q[i2]*4] = color[0]/255;
+    //   // 	colors[(q[i2]*4)+1] = color[1]/255;
+    //   // 	colors[(q[i2]*4)+2] = color[2]/255;
+    //   // 	colors[(q[i2]*4)+3] = color[3]/255;
+    //   // 	continue;
+    //   // }
+    // }
 
     const vertexData: VertexData = new VertexData();
-    vertexData.positions = data.vertices;
-    vertexData.indices = indices;
+    //vertexData.positions = data.vertices;
+    //vertexData.indices = indices;
     console.log(vertexData);
-    console.log(indices);
-    console.log(data);
+    //console.log(indices);
+    //console.log(data);
     console.log(voxel);
-    mesh.material.wireframe = true;
+    //mesh.material.wireframe = true;
     vertexData.applyToMesh(mesh);
   }
 
@@ -119,6 +123,7 @@ class App {
 
   async renderLoop() {
     this._engine.runRenderLoop(() => {
+      //this._chunkHandler.update();
       this._scene.render();
     });
   }
