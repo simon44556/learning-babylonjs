@@ -13,7 +13,12 @@ export class GreedyMesher implements Mesher {
 
   getItemInArrayForOffset(x: number, y: number, z: number, volume: Block[], dimensions: number[]) {
     const block = volume[x + dimensions[0] * (y + dimensions[1] * z)];
-    return block.blockType != BlockType.AIR ? block : 0;
+    //return block.blockType != BlockType.AIR ? block : 0;
+    return block;
+  }
+
+  getIndex(x: number, y: number, z: number, volume: Block[], dimensions: number[]) {
+    return x + dimensions[0] * (y + dimensions[1] * z);
   }
 
   mesh(volume: Block[], dims: number[]): MeshData {
@@ -60,12 +65,15 @@ export class GreedyMesher implements Mesher {
             //   i.e. both aren't empty and both aren't blocks
 
             // TODO: Add block comparing of type. Mesh together same types
-            if (!!blockCurrent === !!blockCompare) {
+            if (!!blockCurrent.blockType === !!blockCompare.blockType) {
+              //console.log("Adding empty");
               this.mask[n] = 0;
             } else if (!!blockCurrent) {
-              this.mask[n] = blockCurrent;
+              //console.log("Adding current");
+              this.mask[n] = this.getIndex(x[0], x[1], x[2], volume, dims);
             } else {
-              this.mask[n] = -blockCompare;
+              //console.log("Adding negcompare");
+              this.mask[n] = -this.getIndex(x[0] + q[0], x[1] + q[1], x[2] + q[2], volume, dims);;
             }
           }
         //Increment x[d]

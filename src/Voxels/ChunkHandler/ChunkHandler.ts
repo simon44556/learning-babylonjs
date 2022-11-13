@@ -1,4 +1,4 @@
-import { Camera, Mesh, Quaternion, Scene, Vector3 } from "@babylonjs/core";
+import { Camera, Mesh, Quaternion, Scene, Vector3, VertexBuffer } from "@babylonjs/core";
 import { Block } from "../Block/Block";
 import { BlockType } from "../Block/BlockType";
 import { Chunk } from "../Chunk/Chunk";
@@ -35,6 +35,8 @@ export class ChunkHandler {
         for (let j = currentPos.y - this.chunkDistance * this.chunkSize; j < currentPos.y + this.chunkDistance * this.chunkSize; j += this.chunkSize) {
           for (let k = currentPos.z - this.chunkDistance * this.chunkSize; k < currentPos.z + this.chunkDistance * this.chunkSize; k += this.chunkSize) {
             const vec = new Vector3(i, j, k);
+            console.log(vec);
+            console.log(this.getChunkCoordinate(vec));
             //this.hashesToLoad.push(this.getChunkIndexHashForCoordinate(vec));
             this.chunks[this.getChunkIndexHashForCoordinate(vec)] = new Chunk(this.getChunkCoordinate(vec), this.chunkSize);
             this.chunks[this.getChunkIndexHashForCoordinate(vec)].fillChunk(new Block(BlockType.RED, false)); //TODO: Change chunk fill
@@ -43,6 +45,8 @@ export class ChunkHandler {
       }
     }
     this.update();
+
+    const keys: any[] = Object.keys(this.chunks);
   }
 
   update() {
@@ -58,8 +62,8 @@ export class ChunkHandler {
       this.updateRenderList();
     }
 
-    this.previousCameraPosition = this.camera.position;
-    this.previousCameraRotation = this.camera.absoluteRotation;
+    this.previousCameraPosition = this.camera.position.clone();
+    this.previousCameraRotation = this.camera.absoluteRotation.clone();
     //Save old camera pos to new one
   }
 

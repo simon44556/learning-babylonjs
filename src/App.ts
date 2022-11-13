@@ -123,7 +123,7 @@ class App {
 
   async renderLoop() {
     this._engine.runRenderLoop(() => {
-      //this._chunkHandler.update();
+      this._chunkHandler.update();
       this._scene.render();
     });
   }
