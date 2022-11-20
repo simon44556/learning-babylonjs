@@ -8,7 +8,19 @@ const appDirectory = fs.realpathSync(process.cwd());
 
 module.exports = merge(common, {
     mode: "development",
-    devtool: "inline-source-map",
+    devtool: "eval-cheap-module-source-map",
+    //devtool: "eval",
+    
+    cache: {
+        type: 'filesystem',
+        allowCollectingMemory: true,
+        maxMemoryGenerations: 10,
+    },
+    optimization: {
+        removeAvailableModules: false,
+        removeEmptyChunks: false,
+        splitChunks: false,
+    },
     devServer: {
         static: path.resolve(appDirectory, "./dist"),
         compress: true,

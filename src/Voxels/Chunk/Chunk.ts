@@ -31,16 +31,23 @@ export class Chunk {
     this.blocks = [];
   }
 
+  getPosition() {
+    return this.position;
+  }
+
+  dispose() {
+    this.mesh.dispose();
+  }
+
   isChunkVisible(camera: Camera) {
     //TODO: if visible set visibility
     // Add later rotation calculatoion
     const chunkPos = this.calculateMeshPosition();
-    if (Math.abs(camera.position.x - chunkPos.x) < 10) {
-      if (Math.abs(camera.position.y - chunkPos.y) < 10) {
-        if (Math.abs(camera.position.z - chunkPos.z) < 10) {
-          this.isVisible = true;
-        }
-      }
+
+    if (Vector3.Distance(camera.position, chunkPos) < 25) {
+      this.isVisible = true;
+    } else {
+      this.isVisible = false;
     }
   }
 
@@ -91,6 +98,7 @@ export class Chunk {
   }
 
   UpdateMesh(mesher: Mesher): void {
+    if (!this.markForMeshing) return;
     const meshData: MeshData = mesher.mesh(this.blocks, this.dimensions);
     const vertexData: VertexData = new VertexData();
 

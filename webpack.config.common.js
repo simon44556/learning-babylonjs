@@ -1,7 +1,6 @@
 const path = require("path");
 const fs = require("fs");
 const CopyPlugin = require("copy-webpack-plugin");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const appDirectory = fs.realpathSync(process.cwd());
@@ -58,8 +57,6 @@ module.exports = {
             { from: "public" },
         ],
     }),
-    
-    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       inject: true,
       template: "!!handlebars-loader!src/index.hbs",

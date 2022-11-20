@@ -1,4 +1,5 @@
 import { Camera, Mesh, Quaternion, Scene, Vector3, VertexBuffer } from "@babylonjs/core";
+import { ChunkHashMap } from "../../utils/ChunkHashMap";
 import { Block } from "../Block/Block";
 import { BlockType } from "../Block/BlockType";
 import { Chunk } from "../Chunk/Chunk";
@@ -7,7 +8,7 @@ import { Mesher } from "../Mesher";
 
 export class ChunkHandler {
   private chunkSize: number = 16;
-  private chunkDistance: number = 1;
+  private chunkDistance: number = 2;
   private scene: Scene;
   private camera: Camera;
   private rootMesh: Mesh;
@@ -17,8 +18,20 @@ export class ChunkHandler {
   private mesher: Mesher;
 
   private chunks: Chunk[];
+  //TODO: Split to seperate lists
   private hashesToLoad: number[];
   private hashesToRemove: number[];
+
+
+  private chunkHashMap: ChunkHashMap;
+  
+  private loadListHashes: Uint32Array;
+  private setupListHashes: Uint32Array;
+  private rebuildListHashes: Uint32Array;
+  private unloadListHashes: Uint32Array;
+  private visibilityListHashes: Uint32Array;
+  private renderListHashes: Uint32Array;
+
 
   constructor(scene: Scene, camera: Camera) {
     this.scene = scene;
@@ -34,19 +47,24 @@ export class ChunkHandler {
       for (let i = currentPos.x - this.chunkDistance * this.chunkSize; i < currentPos.x + this.chunkDistance * this.chunkSize; i += this.chunkSize) {
         for (let j = currentPos.y - this.chunkDistance * this.chunkSize; j < currentPos.y + this.chunkDistance * this.chunkSize; j += this.chunkSize) {
           for (let k = currentPos.z - this.chunkDistance * this.chunkSize; k < currentPos.z + this.chunkDistance * this.chunkSize; k += this.chunkSize) {
+            const keys: any[] = Object.keys(this.chunks);
             const vec = new Vector3(i, j, k);
-            console.log(vec);
-            console.log(this.getChunkCoordinate(vec));
+            const position = this.getChunkIndexHashForCoordinate(vec);
+            if (keys.includes(position)) {
+              continue;
+            }
             //this.hashesToLoad.push(this.getChunkIndexHashForCoordinate(vec));
-            this.chunks[this.getChunkIndexHashForCoordinate(vec)] = new Chunk(this.getChunkCoordinate(vec), this.chunkSize);
-            this.chunks[this.getChunkIndexHashForCoordinate(vec)].fillChunk(new Block(BlockType.RED, false)); //TODO: Change chunk fill
+            this.chunks[position] = new Chunk(vec, this.chunkSize);
+            if (j > 1) this.chunks[position].fillChunk(new Block(BlockType.AIR, false)); //TODO: Change chunk fill
+            else this.chunks[position].fillChunk(new Block(BlockType.RED, false)); //TODO: Change chunk fill
+
+            this.rootMesh.addChild(this.chunks[position].getMesh());
           }
         }
       }
     }
-    this.update();
 
-    const keys: any[] = Object.keys(this.chunks);
+    this.update();
   }
 
   update() {
@@ -54,7 +72,7 @@ export class ChunkHandler {
     this.updateLoadList();
     this.updateSetupList();
     this.updateRebuildList();
-    this.updateFlagsList();
+    //this.updateFlagsList();
     this.updateUnloadList();
     this.updateVisibilityList();
 
@@ -96,7 +114,7 @@ export class ChunkHandler {
     // Check if we neeed to load chunks
     // if yes populate a list of chunks here
 
-    if (this.camera.position !== this.previousCameraPosition) {
+    if (!this.camera.position.equals(this.previousCameraPosition)) {
       //calculate chunks that should be loaded
 
       const currentPos: Vector3 = this.camera.position;
@@ -129,11 +147,15 @@ export class ChunkHandler {
             for (let k = currentPos.z - this.chunkDistance * this.chunkSize; k < currentPos.z + this.chunkDistance * this.chunkSize; k += this.chunkSize) {
               const vec = new Vector3(i, j, k);
               const currentHash = this.getChunkIndexHashForCoordinate(vec);
-              if (!keys.includes(currentHash)) {
+              if (!keys.includes(currentHash.toString())) {
+                console.log("new chunk at ", currentHash);
+                console.log("new chunk at ", keys);
                 //this.hashesToLoad.push(currentHash);
 
                 this.chunks[this.getChunkIndexHashForCoordinate(vec)] = new Chunk(this.getChunkCoordinate(vec), this.chunkSize);
-                this.chunks[this.getChunkIndexHashForCoordinate(vec)].fillChunk(new Block(BlockType.RED, false)); //TODO: Change chunk fill
+                //this.chunks[this.getChunkIndexHashForCoordinate(vec)].fillChunk(new Block(BlockType.RED, false)); //TODO: Change chunk fill
+                if (j > 1) this.chunks[this.getChunkIndexHashForCoordinate(vec)].fillChunk(new Block(BlockType.AIR, false)); //TODO: Change chunk fill
+                else this.chunks[this.getChunkIndexHashForCoordinate(vec)].fillChunk(new Block(BlockType.RED, false)); //TODO: Change chunk fill
               }
             }
           }
@@ -157,6 +179,67 @@ export class ChunkHandler {
 
   updateUnloadList() {
     // TODO: remove chunks from loaded //not sure if neeeded since gc takes care of it
+
+    if (!this.camera.position.equals(this.previousCameraPosition)) {
+      //calculate chunks that should be loaded
+
+      const currentPos: Vector3 = this.camera.position;
+
+      const topRight: Vector3 = currentPos.add(
+        new Vector3(this.chunkDistance * this.chunkSize, this.chunkDistance * this.chunkSize, this.chunkDistance * this.chunkSize)
+      );
+      const bottomLeft: Vector3 = currentPos.add(
+        new Vector3(-this.chunkDistance * this.chunkSize, -this.chunkDistance * this.chunkSize, -this.chunkDistance * this.chunkSize)
+      );
+
+      const hashTopRight: number = this.getChunkIndexHashForCoordinate(topRight);
+      const hashBottomLeft: number = this.getChunkIndexHashForCoordinate(bottomLeft);
+
+      const keys: any[] = Object.keys(this.chunks);
+      let lowestKey: number = keys[0];
+      let maxKey: number = keys[0];
+      for (const key of keys) {
+        if (key < lowestKey) {
+          lowestKey = key;
+        }
+        if (key > maxKey) {
+          maxKey = key;
+        }
+      }
+
+      //console.log(maxKey, lowestKey);
+      //console.log(hashTopRight, hashBottomLeft);
+
+      if (maxKey !== hashTopRight || lowestKey !== hashBottomLeft) {
+        for (const key of keys) {
+          const pos = this.chunks[key].calculateMeshPosition();
+          if (Vector3.Distance(currentPos, pos) > this.chunkDistance * this.chunkSize * this.chunkSize) {
+            console.log("removign", pos, Vector3.Distance(currentPos, pos), this.chunkDistance * this.chunkSize * this.chunkSize);
+            this.rootMesh.removeChild(this.chunks[key].getMesh());
+            this.chunks[key].dispose();
+          }
+        }
+        //   for (let i = currentPos.x - this.chunkDistance * this.chunkSize; i < currentPos.x + this.chunkDistance * this.chunkSize; i += this.chunkSize) {
+        //     for (let j = currentPos.y - this.chunkDistance * this.chunkSize; j < currentPos.y + this.chunkDistance * this.chunkSize; j += this.chunkSize) {
+        //       for (let k = currentPos.z - this.chunkDistance * this.chunkSize; k < currentPos.z + this.chunkDistance * this.chunkSize; k += this.chunkSize) {
+        //         const vec = new Vector3(i, j, k);
+        //         const currentHash = this.getChunkIndexHashForCoordinate(vec);
+        //         if (!keys.includes(currentHash.toString())) {
+        //           console.log("new chunk at ", currentHash);
+        //           console.log("new chunk at ", keys);
+        //           //this.hashesToLoad.push(currentHash);
+
+        //           this.chunks[this.getChunkIndexHashForCoordinate(vec)] = new Chunk(this.getChunkCoordinate(vec), this.chunkSize);
+        //           //this.chunks[this.getChunkIndexHashForCoordinate(vec)].fillChunk(new Block(BlockType.RED, false)); //TODO: Change chunk fill
+        //           if (j > 1) this.chunks[this.getChunkIndexHashForCoordinate(vec)].fillChunk(new Block(BlockType.AIR, false)); //TODO: Change chunk fill
+        //           else this.chunks[this.getChunkIndexHashForCoordinate(vec)].fillChunk(new Block(BlockType.RED, false)); //TODO: Change chunk fill
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
+      }
+    }
   }
 
   updateVisibilityList() {
@@ -171,15 +254,20 @@ export class ChunkHandler {
   updateRenderList() {
     // TODO: add / remove mesh list in scene
     // Chunks in front of the camera
-    this.scene.removeMesh(this.rootMesh, true);
-    this.rootMesh.dispose(true);
+    //this.scene.removeMesh(this.rootMesh, true);
+
+    //this.rootMesh.dispose(false);
+
+    //this.rootMesh = new Mesh("Chunks");
 
     const arrayKeys: any[] = Object.keys(this.chunks);
     for (const key of arrayKeys) {
       if (this.chunks[key].getIsVisible()) {
         this.rootMesh.addChild(this.chunks[key].getMesh());
+      } else {
+        this.rootMesh.removeChild(this.chunks[key].getMesh());
       }
     }
-    this.scene.addMesh(this.rootMesh);
+    //this.scene.addMesh(this.rootMesh);
   }
 }

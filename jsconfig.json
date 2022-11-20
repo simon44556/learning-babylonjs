@@ -3,5 +3,6 @@
         "module": "esNext",
 		"target": "es2021",
         "experimentalDecorators": true
-    }
+    },
+    "exclude": ["node_modules", "ise", "bin", "obj", "kite"]
 }

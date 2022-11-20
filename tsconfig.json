@@ -14,5 +14,6 @@
         "sourceMap": true,
         "strictPropertyInitialization": false,
         "rootDir": "src"
-	}
+	},
+    "exclude": ["node_modules", "ise", "bin", "obj", "kite"]
 }
