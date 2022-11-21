@@ -2,12 +2,13 @@
  * Simple hashmap def assuming collisions are not possible
  */
 interface HashMap<T, K, V> {
-  buckets: T[];
+  buckets: T[][];
   size: number;
   keys: K[];
   loadFactor: number;
+  collisions: number;
 
-  get(key: K): V;
+  get(key: K): V | null;
   set(key: K, value: V): any;
   delete(key: K): boolean;
   hash(key: K): number;
@@ -17,4 +18,6 @@ interface HashMap<T, K, V> {
   getLoadFactor(): number;
 
   _getBucketIndex(key: K): number;
+
+  _getIndexes(key: K): { bucketIndex: number; entryIndex: number; keyIndex: number };
 }

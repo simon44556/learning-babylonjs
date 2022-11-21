@@ -1,4 +1,4 @@
-import { Color3, Engine, Light, Mesh, MeshBuilder, Scene, TargetCamera, Vector3, VertexData } from "@babylonjs/core";
+import { Color3, Engine, Light, Mesh, MeshBuilder, Scene, Vector3, VertexData } from "@babylonjs/core";
 import "@babylonjs/inspector";
 
 import { KeyboardEvents } from "./Input/KeyboardEvents";
@@ -6,13 +6,12 @@ import { LightBuilder } from "./Lighting/LightBuilder";
 import { SampleMaterial } from "./Materials/SampleMaterial";
 import { ChunkHandler } from "./Voxels/ChunkHandler/ChunkHandler";
 import { GreedyMesher } from "./Voxels/GreedyTry";
-import { MeshData } from "./Voxels/MeshData";
 import { Voxel } from "./Voxels/Voxel";
 import { Canvas } from "./Window/Canvas";
 import { EngineBuilder } from "./Window/EngineBuilder";
 import { TargetCameraHandler } from "./Window/TargetCameraHandler";
 
-class App {
+export class App {
   private _canvasElement: string = "view";
   private _canvas: Canvas;
   private _engine: Engine;
@@ -35,7 +34,7 @@ class App {
 
     this._lightBuilder = new LightBuilder(this._scene);
     this._camera = new TargetCameraHandler(this._scene).buildFreeCamera("cam", new Vector3(10, 5, -30)).attachControls(this._canvas);
-    this._keyboardEvents = new KeyboardEvents(this._scene);
+    this._keyboardEvents = new KeyboardEvents(this);
 
     this._chunkHandler = new ChunkHandler(this._scene, this._camera.getCamera());
 
@@ -45,6 +44,16 @@ class App {
     //this.addGround();
 
     this.renderLoop();
+  }
+
+  keyPressed(ev: string): void {
+    if (ev === "P") {
+      this._chunkHandler.togglePause();
+    }
+  }
+
+  getScene() {
+    return this._scene;
   }
 
   addLight() {

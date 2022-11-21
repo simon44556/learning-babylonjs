@@ -5,13 +5,14 @@ import { ChunkEntry } from "./ChunkEntry";
 /**
  * Simple hashmap implementation assuming collisions are not possible
  */
-export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk> {
-  buckets: ChunkEntry[];
+export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk | null> {
+  buckets: ChunkEntry[][];
   size: number;
   keys: Vector3[];
   loadFactor: number;
 
   chunkSize: number;
+  collisions: number;
 
   constructor(initialCapacity: number, loadFactor: number = 0.75, chunkSize: number = 16) {
     this.buckets = new Array(initialCapacity);
@@ -22,36 +23,47 @@ export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk> {
     this.chunkSize = chunkSize;
 
     this.keys = new Array();
+    this.collisions = 0;
   }
 
   getAllKeys(): Vector3[] {
     return this.keys;
   }
 
-  get(key: Vector3): Chunk {
-    const bucketIndex = this._getBucketIndex(key);
-    return this.buckets[bucketIndex].value;
+  get(key: Vector3): Chunk | null {
+    const { bucketIndex, entryIndex } = this._getIndexes(key);
+
+    if (entryIndex === -1) {
+      return null;
+    }
+
+    return this.buckets[bucketIndex][entryIndex].value;
   }
 
   has(key: Vector3): boolean {
-    const bucketIndex = this._getBucketIndex(key);
-    return this.buckets[bucketIndex] != null;
+    return !!this.get(key);
   }
 
   set(key: Vector3, value: Chunk): ChunkHashMap {
-    const bucketIndex = this._getBucketIndex(key);
+    const { bucketIndex, entryIndex } = this._getIndexes(key);
 
-    if (this.buckets[bucketIndex] == null) {
+    if (entryIndex === -1) {
+      //console.log("Setting key:", key);
       const keyIndex = this.keys.push(key) - 1;
-      this.buckets[bucketIndex] = new ChunkEntry();
-      this.buckets[bucketIndex].keyIndex = keyIndex;
+      this.buckets[bucketIndex] = this.buckets[bucketIndex] || [];
+
+      this.buckets[bucketIndex].push({ key, value, keyIndex });
+
       this.size++;
+
+      if (this.buckets[bucketIndex].length > 1) {
+        this.collisions++;
+        //console.log("Collisions", this.collisions);
+      }
     } else {
       console.error("Overriding key: ", key);
+      this.buckets[bucketIndex][entryIndex].value = value;
     }
-
-    this.buckets[bucketIndex].key = key;
-    this.buckets[bucketIndex].value = value;
 
     if (this.loadFactor > 0 && this.getLoadFactor() > this.loadFactor) {
       this.expand(this.buckets.length * 2);
@@ -61,9 +73,10 @@ export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk> {
   }
 
   delete(key: Vector3): boolean {
-    const bucketIndex = this._getBucketIndex(key);
+    const { bucketIndex, entryIndex, keyIndex } = this._getIndexes(key);
 
-    delete this.keys[this.buckets[bucketIndex].keyIndex];
+    this.buckets[bucketIndex].splice(entryIndex, 1);
+    delete this.keys[keyIndex];
 
     this.size--;
 
@@ -72,6 +85,7 @@ export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk> {
 
   hash(key: Vector3): number {
     const normalPos = key.divide(new Vector3(this.chunkSize, this.chunkSize, this.chunkSize)).floor();
+
     return (normalPos.x + this.chunkSize) * (normalPos.y + this.chunkSize * normalPos.z);
   }
 
@@ -81,7 +95,12 @@ export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk> {
 
     this.keys.forEach((key) => {
       if (key) {
-        newMap.set(key, this.get(key));
+        const chunk = this.get(key);
+        if (chunk == null) {
+          return;
+        } else {
+          newMap.set(key, chunk);
+        }
       }
     });
 
@@ -95,5 +114,19 @@ export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk> {
 
   _getBucketIndex(key: Vector3): number {
     return this.hash(key) % this.buckets.length;
+  }
+
+  _getIndexes(key: Vector3): { bucketIndex: number; entryIndex: number; keyIndex: number } {
+    const bucketIndex = this._getBucketIndex(key);
+    const values = this.buckets[bucketIndex] || [];
+
+    for (let entryIndex = 0; entryIndex < values.length; entryIndex++) {
+      const entry = values[entryIndex];
+      if (entry.key.equals(key)) {
+        return { bucketIndex: bucketIndex, entryIndex: entryIndex, keyIndex: entry.keyIndex };
+      }
+    }
+
+    return { bucketIndex: bucketIndex, entryIndex: -1, keyIndex: -1 };
   }
 }
