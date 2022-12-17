@@ -1,6 +1,7 @@
-import { Block } from "./Block/Block";
-import { BlockType } from "./Block/BlockType";
-import { MeshData } from "./MeshData";
+
+import { Block } from "../Block/Block";
+import { BlockType } from "../Block/BlockType";
+import { MeshData } from "../MeshData";
 import { Mesher } from "./Mesher";
 
 export class GreedyMesher implements Mesher {
@@ -13,11 +14,10 @@ export class GreedyMesher implements Mesher {
 
   getItemInArrayForOffset(x: number, y: number, z: number, volume: Block[], dimensions: number[]) {
     const block = volume[x + dimensions[0] * (y + dimensions[1] * z)];
-    //return block.blockType != BlockType.AIR ? block : 0;
-    return block;
+    return block.blockType || 0;
   }
 
-  getIndex(x: number, y: number, z: number, volume: Block[], dimensions: number[]) {
+  getIndex(x: number, y: number, z: number, dimensions: number[]) {
     return x + dimensions[0] * (y + dimensions[1] * z);
   }
 
@@ -57,23 +57,23 @@ export class GreedyMesher implements Mesher {
             // q determines the direction (X, Y or Z) that we are searching
             // m.IsBlockAt(x,y,z) takes global map positions and returns true if a block exists there
 
-            const blockCurrent: any = 0 <= x[dimensionLoop] ? this.getItemInArrayForOffset(x[0], x[1], x[2], volume, dims) : 0;
-            const blockCompare: any =
+            const blockCurrent: BlockType = 0 <= x[dimensionLoop] ? this.getItemInArrayForOffset(x[0], x[1], x[2], volume, dims) : 0;
+            const blockCompare: BlockType =
               x[dimensionLoop] < dims[dimensionLoop] - 1 ? this.getItemInArrayForOffset(x[0] + q[0], x[1] + q[1], x[2] + q[2], volume, dims) : 0;
 
             // The mask is set to true if there is a visible face between two blocks,
             //   i.e. both aren't empty and both aren't blocks
 
             // TODO: Add block comparing of type. Mesh together same types
-            if (!!blockCurrent.blockType === !!blockCompare.blockType) {
+            if (!!blockCurrent === !!blockCompare) {
               //console.log("Adding empty");
               this.mask[n] = 0;
             } else if (!!blockCurrent) {
               //console.log("Adding current");
-              this.mask[n] = this.getIndex(x[0], x[1], x[2], volume, dims);
+              this.mask[n] = this.getIndex(x[0], x[1], x[2],  dims);
             } else {
               //console.log("Adding negcompare");
-              this.mask[n] = -this.getIndex(x[0] + q[0], x[1] + q[1], x[2] + q[2], volume, dims);;
+              this.mask[n] = -this.getIndex(x[0] + q[0], x[1] + q[1], x[2] + q[2],  dims);
             }
           }
         //Increment x[d]

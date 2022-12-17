@@ -1,11 +1,11 @@
 import { Vector3 } from "@babylonjs/core";
-import { Chunk } from "../Voxels/Chunk/Chunk";
+import { Chunk } from "../../Voxels/Chunk/Chunk";
 import { ChunkEntry } from "./ChunkEntry";
 
 /**
  * Simple hashmap implementation assuming collisions are not possible
  */
-export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk | null> {
+export class ChunkHashMap implements HashMap<ChunkEntry, Vector3> {
   buckets: ChunkEntry[][];
   size: number;
   keys: Vector3[];
@@ -30,7 +30,7 @@ export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk | null> 
     return this.keys;
   }
 
-  get(key: Vector3): Chunk | null {
+  get(key: Vector3): any | null {
     const { bucketIndex, entryIndex } = this._getIndexes(key);
 
     if (entryIndex === -1) {
@@ -44,7 +44,7 @@ export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk | null> 
     return !!this.get(key);
   }
 
-  set(key: Vector3, value: Chunk): ChunkHashMap {
+  set(key: Vector3, value: any): ChunkHashMap {
     const { bucketIndex, entryIndex } = this._getIndexes(key);
 
     if (entryIndex === -1) {
@@ -76,7 +76,9 @@ export class ChunkHashMap implements HashMap<ChunkEntry, Vector3, Chunk | null> 
     const { bucketIndex, entryIndex, keyIndex } = this._getIndexes(key);
 
     this.buckets[bucketIndex].splice(entryIndex, 1);
-    delete this.keys[keyIndex];
+    //delete this.keys[keyIndex];
+
+    this.keys[keyIndex] = Vector3.Zero();
 
     this.size--;
 

@@ -5,7 +5,7 @@ import { KeyboardEvents } from "./Input/KeyboardEvents";
 import { LightBuilder } from "./Lighting/LightBuilder";
 import { SampleMaterial } from "./Materials/SampleMaterial";
 import { ChunkHandler } from "./Voxels/ChunkHandler/ChunkHandler";
-import { GreedyMesher } from "./Voxels/GreedyTry";
+import { GreedyMesher } from "./Voxels/Mesher/GreedyTry";
 import { Voxel } from "./Voxels/Voxel";
 import { Canvas } from "./Window/Canvas";
 import { EngineBuilder } from "./Window/EngineBuilder";

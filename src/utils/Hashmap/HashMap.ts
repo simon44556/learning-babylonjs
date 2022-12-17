@@ -1,15 +1,15 @@
 /**
  * Simple hashmap def assuming collisions are not possible
  */
-interface HashMap<T, K, V> {
+interface HashMap<T, K> {
   buckets: T[][];
   size: number;
   keys: K[];
   loadFactor: number;
   collisions: number;
 
-  get(key: K): V | null;
-  set(key: K, value: V): any;
+  get(key: K): Object | null;
+  set(key: K, value: Object): any;
   delete(key: K): boolean;
   hash(key: K): number;
   has(key: K): boolean;

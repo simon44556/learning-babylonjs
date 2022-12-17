@@ -1,9 +1,7 @@
-import { Camera, Mesh, Vector3, VertexData } from "@babylonjs/core";
-import { Null_Value } from "@babylonjs/inspector/lines/optionsLineComponent";
+import { Camera, Mesh, SubMesh, Vector3, VertexData } from "@babylonjs/core";
 import { Block } from "../Block/Block";
-import { BlockType } from "../Block/BlockType";
 import { MeshData } from "../MeshData";
-import { Mesher } from "../Mesher";
+import { Mesher } from "../Mesher/Mesher";
 
 // Each chunk contains an array of blocks
 // Position of blocks is calculated by ([x + chunkWidth * (y + ChunkHeight * z)]) Dimension being size of the chunk
@@ -102,14 +100,30 @@ export class Chunk {
 
   UpdateMesh(mesher: Mesher): void {
     if (!this.markForMeshing || this.mesh == null) return;
+
     const meshData: MeshData = mesher.mesh(this.blocks, this.dimensions);
+
     const vertexData: VertexData = new VertexData();
+
     if (meshData.vertices.length > 1) {
       vertexData.positions = meshData.vertices;
       vertexData.indices = meshData.indices;
     }
     vertexData.applyToMesh(this.mesh);
 
+    this.mesh?.setEnabled(false);
+    
     this.markForMeshing = false;
+  }
+
+  render(camera: Camera) {
+    if (!this.mesh) {
+      return;
+    }
+    const isFrustum = camera.isInFrustum(this.mesh);
+    if (isFrustum && !this.mesh.isEnabled()) {
+      this.mesh?.setEnabled(true);
+    } else if (!isFrustum && this.mesh.isEnabled()) {
+    }
   }
 }

@@ -9,4 +9,10 @@ module.exports = {
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
   ],
+  rules: {
+    '@typescript-eslint/no-inferrable-types': [true, "ignore-params", "ignore-properties"],
+  },
+  env: {
+    node: true
+  }
 };
